@@ -20,6 +20,7 @@
         .banner-wrapper {
             display: flex;
             position: relative;
+            height: 300px;
         }
 
         .banner {
@@ -30,6 +31,18 @@
             border: 6px solid #d5dbef;
             border-radius: 20px;
             display: flex;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            visibility: hidden;
+        }
+
+        .banner.show {
+            opacity: 1;
+            visibility: visible;
+            position: relative;
         }
         
         .banner-content {
@@ -240,7 +253,7 @@
         <div class="banner-container">
             <div class="banner-wrapper">
 
-                <div class="banner">
+                <div class="banner show">
                     <div class="banner-content">
                         <h2 style="font-size: 30px;">Добавили Фонд «Сберегательный» в вечернюю сессию</h2>
                         <p style="font-size: 17px;">Теперь торговать им на МосБирже можно после 19:00 — до 23:50 мск</p>
@@ -356,87 +369,132 @@
 
 
     <script>
+        // Получаем все элементы баннеров и точек
         const banners = document.querySelectorAll('.banner');
         const dots = document.querySelectorAll('.dot');
-    
+
+        // Текущий индекс активного баннера
         let currentIndex = 0;
-    
+
+        // Функция для отображения баннера по индексу
         function showBanner(index) {
-          banners.forEach((banner, i) => {
-            banner.style.display = i === index ? 'flex' : 'none';
-          });
-    
-          dots.forEach((dot, i) => {
-            dot.classList.toggle('active', i === index);
-          });
+            // Перебираем все баннеры и удаляем класс 'show' у каждого баннера
+            banners.forEach((banner, i) => {
+                banner.classList.remove('show');
+            });
+            // Перебираем все точки и устанавливаем класс 'active' только для текущей точки
+            dots.forEach((dot, i) => {
+                // Если текущий индекс совпадает с индексом точки, добавляем класс 'active'
+                // Иначе удаляем класс 'active'
+                dot.classList.toggle('active', i === index);
+            });
+
+            // Добавляем класс 'show' для баннера с текущим индексом, чтобы его показать
+            banners[index].classList.add('show');
         }
-    
+
+
+        // Функция для показа следующего баннера
         function nextBanner() {
-          currentIndex = (currentIndex + 1) % banners.length;
-          showBanner(currentIndex);
+            // Увеличиваем текущий индекс на 1 с учетом цикличности
+            currentIndex = (currentIndex + 1) % banners.length;
+            // Показываем баннер с обновленным индексом
+            showBanner(currentIndex);
         }
-    
+
+        // Функция для показа предыдущего баннера
         function prevBanner() {
-          currentIndex = (currentIndex - 1 + banners.length) % banners.length;
-          showBanner(currentIndex);
+            // Уменьшаем текущий индекс на 1
+            currentIndex = (currentIndex - 1 + banners.length) % banners.length;
+            // Показываем баннер с обновленным индексом
+            showBanner(currentIndex);
         }
-    
+
+        // Добавляем обработчик события для кнопки следующего баннера
         document.querySelector('.arrow.next').addEventListener('click', nextBanner);
+        // Добавляем обработчик события для кнопки предыдущего баннера
         document.querySelector('.arrow.prev').addEventListener('click', prevBanner);
-    
+
+        // Добавляем обработчики событий для точек
         dots.forEach((dot, index) => {
-          dot.addEventListener('click', () => {
+        dot.addEventListener('click', () => {
+            // Показываем баннер, соответствующий индексу точки
             showBanner(index);
+            // Обновляем текущий индекс
             currentIndex = index;
-          });
         });
-    
+        });
+
+        // Показываем первый баннер при загрузке страницы
         showBanner(currentIndex);
 
+        // Автоматическая смена баннеров каждые 5 секунд
+        setInterval(nextBanner, 5000);
 
 
 
+
+
+        // Получаем элемент, в который будет выводиться текст, и элемент курсора
         const typedTextSpan = document.querySelector(".typed-text");
         const cursorSpan = document.querySelector(".cursor");
 
+        // Массив строк, которые будут печататься
         const textArray = ["компании", "лучшей компании", "УК «Первая»", "my programming level"];
-        const typingDelay = 200;
-        const erasingDelay = 100;
-        const newTextDelay = 2000;
-        let textArrayIndex = 0;
-        let charIndex = 0;
+        const typingDelay = 150;  // Задержка между печатанием каждого символа
+        const erasingDelay = 100; // Задержка между удалением каждого символа
+        const newTextDelay = 2000; // Задержка перед началом печатания новой строки
+        let textArrayIndex = 0; // Индекс текущей строки в массиве textArray
+        let charIndex = 0;      // Индекс текущего символа в строке
 
+        // Функция для печатания текста
         function type() {
-        if (charIndex < textArray[textArrayIndex].length) {
-            if(!cursorSpan.classList.contains("typing")) cursorSpan.classList.add("typing");
-            typedTextSpan.textContent += textArray[textArrayIndex].charAt(charIndex);
-            charIndex++;
-            setTimeout(type, typingDelay);
-        } 
-        else {
-            cursorSpan.classList.remove("typing");
-            setTimeout(erase, newTextDelay);
-        }
+            // Проверяем, не достигли ли мы конца текущей строки
+            if (charIndex < textArray[textArrayIndex].length) {
+                // Добавляем класс "typing" к курсору, если он отсутствует
+                if (!cursorSpan.classList.contains("typing")) cursorSpan.classList.add("typing");
+                // Добавляем следующий символ к содержимому typedTextSpan
+                typedTextSpan.textContent += textArray[textArrayIndex].charAt(charIndex);
+                charIndex++; // Увеличиваем индекс символа
+                // Запускаем функцию type() снова через typingDelay миллисекунд
+                setTimeout(type, typingDelay);
+            } else {
+                // Удаляем класс "typing" у курсора после окончания печатания строки
+                cursorSpan.classList.remove("typing");
+                // Запускаем функцию erase() через newTextDelay миллисекунд
+                setTimeout(erase, newTextDelay);
+            }
         }
 
+        // Функция для удаления текста
         function erase() {
-        if (charIndex > 0) {
-            if(!cursorSpan.classList.contains("typing")) cursorSpan.classList.add("typing");
-            typedTextSpan.textContent = textArray[textArrayIndex].substring(0, charIndex-1);
-            charIndex--;
-            setTimeout(erase, erasingDelay);
-        } 
-        else {
-            cursorSpan.classList.remove("typing");
-            textArrayIndex++;
-            if(textArrayIndex>=textArray.length) textArrayIndex=0;
-            setTimeout(type, typingDelay + 1100);
-        }
+            // Проверяем, не достигли ли мы начала строки
+            if (charIndex > 0) {
+                // Добавляем класс "typing" к курсору, если он отсутствует
+                if (!cursorSpan.classList.contains("typing")) cursorSpan.classList.add("typing");
+                // Удаляем последний символ из содержимого typedTextSpan
+                typedTextSpan.textContent = textArray[textArrayIndex].substring(0, charIndex - 1);
+                charIndex--; // Уменьшаем индекс символа
+                // Запускаем функцию erase() снова через erasingDelay миллисекунд
+                setTimeout(erase, erasingDelay);
+            } else {
+                // Удаляем класс "typing" у курсора после окончания удаления строки
+                cursorSpan.classList.remove("typing");
+                // Переходим к следующей строке в массиве textArray
+                textArrayIndex++;
+                // Если достигли конца массива, начинаем с первой строки
+                if (textArrayIndex >= textArray.length) textArrayIndex = 0;
+                // Запускаем функцию type() через некоторое время
+                setTimeout(type, typingDelay + 1100);
+            }
         }
 
+        // Запускаем функцию type() после загрузки страницы и начальной задержки
         document.addEventListener("DOMContentLoaded", function() {
-        if(textArray.length) setTimeout(type, newTextDelay + 250);
-        });
+            // Проверяем, есть ли строки в массиве textArray
+            if (textArray.length) setTimeout(type, newTextDelay + 250);
+        }
+        );
     </script>
 </body>
 </html>
